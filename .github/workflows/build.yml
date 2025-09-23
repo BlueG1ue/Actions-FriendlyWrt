@@ -87,7 +87,7 @@ jobs:
         DIRNAME=friendlywrt$(echo ${{ matrix.VERSION }}|awk -F . '{print $1}')${SUFFIX}
         CONFIG=rockchip${SUFFIX}
         cat > .current_config.mk <<EOL
-        . device/friendlyelec/rk3399/base.mk
+        . device/friendlyelec/rk3368/base.mk
         TARGET_IMAGE_DIRNAME=${DIRNAME}
         TARGET_FRIENDLYWRT_CONFIG=${CONFIG}
         EOL
@@ -141,8 +141,8 @@ jobs:
 
     strategy:
       matrix:
-        VERSION: ['23.05', '24.10']
-        CPU: [rk3328, rk3528, rk3399, rk3566, rk3568, rk3576, rk3588]
+        VERSION: ['24.10']
+        CPU: [rk3568]
         SET: [docker, non-docker]
     steps:
     - name: Checkout
