@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -e
 
 echo "Adding AmneziaWG packages to build..."
