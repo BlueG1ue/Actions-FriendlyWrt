@@ -77,6 +77,7 @@ jobs:
       run: |
         cd project
         source ../scripts/add_packages.sh
+        source ../scripts/add_amneziawg_packages.sh 
         source ../scripts/custome_config.sh
 
     - name: Prepare dot config and feeds
