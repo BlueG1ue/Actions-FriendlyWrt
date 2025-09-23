@@ -13,6 +13,6 @@ cp -r /tmp/amneziawg-openwrt/kmod-amneziawg project/friendlywrt/package/
 cp -r /tmp/amneziawg-openwrt/luci-proto-amneziawg project/friendlywrt/package/
 
 # Переименовываем luci-proto в luci-app
-mv project/friendlywrt/package/luci-proto-amneziawg project/friendlywrt/package/luci-app-amneziawg
+mv friendlywrt/package/luci-proto-amneziawg friendlywrt/package/luci-app-amneziawg
 
 echo "AmneziaWG packages added successfully"
