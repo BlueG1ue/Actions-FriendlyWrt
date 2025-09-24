@@ -193,6 +193,15 @@ jobs:
         echo "Created archive with packages:"
         ls -la ../amneziawg-packages.tar.gz
 
+    - name: Upload AmneziaWG packages as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: amneziawg-packages
+        path: |
+          ./artifact/amneziawg-packages/
+          ./artifact/amneziawg-packages.tar.gz
+        retention-days: 30
+
     - name: Upload AmneziaWG packages archive
       uses: svenstaro/upload-release-action@v2
       with:
