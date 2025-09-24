@@ -136,6 +136,16 @@ jobs:
         cd project/friendlywrt
         make -j1 V=s
 
+    - name: Check if AmneziaWG packages were built
+      run: |
+        cd project/friendlywrt
+        echo "Checking built packages..."
+        find . -name "amneziawg*" -type f
+        find . -name "kmod-amneziawg*" -type f
+        find . -name "luci-app-amneziawg*" -type f
+        echo "All IPK files in bin directory:"
+        find bin -name "*.ipk" | head -20
+
     - name: Create rootfs package
       id: create_rootfs_package
       run: |
@@ -147,18 +157,49 @@ jobs:
               ${FRIENDLYWRT_SRC}/${FRIENDLYWRT_PACKAGE_DIR}
         echo "##[set-output name=rootfs_filename;]$rootfs_filename"
 
-    - name: Extract and upload AmneziaWG packages
+
+   - name: Extract and upload AmneziaWG packages
       run: |
         cd project
+        # Распаковываем rootfs
         tar xzf ../artifact/${{ steps.create_rootfs_package.outputs.rootfs_filename }}
         mkdir -p ../artifact/amneziawg-packages
-    
-        find friendlywrt* -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \;
-        find friendlywrt* -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \;
-        find friendlywrt* -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \;
-        echo "AmneziaWG packages extracted"
+        
+        # Ищем пакеты в нескольких возможных местах
+        echo "Searching for AmneziaWG packages..."
+        
+        # Вариант 1: В распакованном rootfs
+        find . -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+        find . -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+        find . -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+        
+        # Вариант 2: В директории сборки friendlywrt
+        find friendlywrt/bin -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+        find friendlywrt/bin -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+        find friendlywrt/bin -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+        
+        # Проверяем, найдены ли пакеты
+        if [ -z "$(ls -A ../artifact/amneziawg-packages)" ]; then
+            echo "WARNING: No AmneziaWG packages found!"
+            echo "Searching for any IPK files to debug..."
+            find . -name "*.ipk" | head -10
+        else
+            echo "AmneziaWG packages found:"
+            ls -la ../artifact/amneziawg-packages/
+        fi
+        
 
     - name: Upload AmneziaWG packages to release
+      run: |
+        if [ -z "$(ls -A ./artifact/amneziawg-packages/*.ipk 2>/dev/null)" ]; then
+            echo "No AmneziaWG packages to upload"
+            # Создаем пустой файл, чтобы избежать ошибки
+            mkdir -p ./artifact/amneziawg-packages
+            touch ./artifact/amneziawg-packages/empty.txt
+        fi
+      # Используем отдельный шаг для загрузки, если файлы есть
+    - name: Upload AmneziaWG packages if exist
+      if: success() && length(files('./artifact/amneziawg-packages/*.ipk')) > 0
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -166,6 +207,7 @@ jobs:
         asset_name: amneziawg-packages
         tag: ${{ needs.prepare_release.outputs.release_tag }}
         overwrite: true
+
 
     - name: Upload rootfs package
       uses: svenstaro/upload-release-action@v2
