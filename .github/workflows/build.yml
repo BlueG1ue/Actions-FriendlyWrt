@@ -73,6 +73,17 @@ jobs:
         repo sync -c scripts/sd-fuse  --no-clone-bundle
         repo sync -c toolchain  --no-clone-bundle
 
+    - name: Debug directory structure
+      run: |
+        cd project
+        echo "=== Current directory structure ==="
+        pwd
+        ls -la
+        echo "=== FriendlyWrt directory ==="
+        ls -la friendlywrt/ || echo "FriendlyWrt not found"
+        echo "=== Package directory ==="
+        ls -la friendlywrt/package/ || echo "Package directory not found"
+
     - name: Apply customizations
       run: |
         cd project
@@ -93,6 +104,17 @@ jobs:
         EOL
         DEBUG_DOT_CONFIG=1 ./build.sh friendlywrt
 
+    - name: Update and install feeds
+      run: |
+        cd project/friendlywrt
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+
+    - name: Make defconfig
+      run: |
+        cd project/friendlywrt
+        make defconfig
+
     - name: Download package
       run: |
         cd project/friendlywrt
@@ -100,22 +122,8 @@ jobs:
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
-    # ЗАМЕНА НАЧИНАЕТСЯ ЗДЕСЬ
-    - name: Compile essential packages first
-      id: compile_essential
-      continue-on-error: true
-      run: |
-        cd project/friendlywrt
-        # Сначала соберите только ядро и основные пакеты
-        make toolchain/install -j$(nproc)
-        make target/compile -j$(nproc)
-        make package/amneziawg-tools/compile -j$(nproc)
-        make package/kmod-amneziawg/compile -j$(nproc)
-        make package/luci-app-amneziawg/compile -j$(nproc)
-        echo $?
-
-    - name: Compile remaining packages
-      id: compile_remaining
+    - name: Compile friendlyWrt
+      id: compile
       continue-on-error: true
       run: |
         cd project/friendlywrt
@@ -123,11 +131,10 @@ jobs:
         echo $?
 
     - name: Check the result and try again
-      if: steps.compile_essential.outcome == 'failure' || steps.compile_remaining.outcome == 'failure'
+      if: steps.compile.outcome == 'failure'
       run: |
         cd project/friendlywrt
         make -j1 V=s
-    # ЗАМЕНА ЗАКАНЧИВАЕТСЯ ЗДЕСЬ
 
     - name: Create rootfs package
       id: create_rootfs_package
