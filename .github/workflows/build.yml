@@ -157,6 +157,8 @@ jobs:
               ${FRIENDLYWRT_SRC}/${FRIENDLYWRT_PACKAGE_DIR}
         echo "##[set-output name=rootfs_filename;]$rootfs_filename"
 
+
+
     - name: Extract and upload AmneziaWG packages
       run: |
         cd project
@@ -167,12 +169,10 @@ jobs:
         # Ищем пакеты в нескольких возможных местах
         echo "Searching for AmneziaWG packages..."
         
-        # Вариант 1: В распакованном rootfs
         find . -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
         find . -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
         find . -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
         
-        # Вариант 2: В директории сборки friendlywrt
         find friendlywrt/bin -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
         find friendlywrt/bin -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
         find friendlywrt/bin -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
@@ -180,8 +180,6 @@ jobs:
         # Проверяем, найдены ли пакеты
         if [ -z "$(ls -A ../artifact/amneziawg-packages)" ]; then
             echo "WARNING: No AmneziaWG packages found!"
-            echo "Searching for any IPK files to debug..."
-            find . -name "*.ipk" | head -10
         else
             echo "AmneziaWG packages found:"
             ls -la ../artifact/amneziawg-packages/
@@ -189,22 +187,22 @@ jobs:
 
     - name: Upload AmneziaWG packages to release
       run: |
-        if [ -z "$(ls -A ./artifact/amneziawg-packages/*.ipk 2>/dev/null)" ]; then
-            echo "No AmneziaWG packages to upload"
-            # Создаем пустой файл, чтобы избежать ошибки
-            mkdir -p ./artifact/amneziawg-packages
-            touch ./artifact/amneziawg-packages/empty.txt
-        fi
+        cd ./artifact/amneziawg-packages
+        # Создаем архив со всеми пакетами
+        tar -czf ../amneziawg-packages.tar.gz *.ipk
+        echo "Created archive with packages:"
+        ls -la ../amneziawg-packages.tar.gz
 
-    - name: Upload AmneziaWG packages if exist
-      if: hashFiles('./artifact/amneziawg-packages/*.ipk') != ''
+    - name: Upload AmneziaWG packages archive
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ./artifact/amneziawg-packages/*.ipk
-        asset_name: amneziawg-packages
+        file: ./artifact/amneziawg-packages.tar.gz
+        asset_name: amneziawg-packages.tar.gz
         tag: ${{ needs.prepare_release.outputs.release_tag }}
         overwrite: true
+
+
 
     - name: Upload rootfs package
       uses: svenstaro/upload-release-action@v2
