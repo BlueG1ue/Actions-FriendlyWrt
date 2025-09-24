@@ -159,34 +159,34 @@ jobs:
 
 
    - name: Extract and upload AmneziaWG packages
-      run: |
-        cd project
-        # Распаковываем rootfs
-        tar xzf ../artifact/${{ steps.create_rootfs_package.outputs.rootfs_filename }}
-        mkdir -p ../artifact/amneziawg-packages
+     run: |
+       cd project
+       # Распаковываем rootfs
+       tar xzf ../artifact/${{ steps.create_rootfs_package.outputs.rootfs_filename }}
+       mkdir -p ../artifact/amneziawg-packages
         
-        # Ищем пакеты в нескольких возможных местах
-        echo "Searching for AmneziaWG packages..."
+       # Ищем пакеты в нескольких возможных местах
+       echo "Searching for AmneziaWG packages..."
         
-        # Вариант 1: В распакованном rootfs
-        find . -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
-        find . -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
-        find . -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+       # Вариант 1: В распакованном rootfs
+       find . -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+       find . -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+       find . -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
         
-        # Вариант 2: В директории сборки friendlywrt
-        find friendlywrt/bin -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
-        find friendlywrt/bin -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
-        find friendlywrt/bin -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+       # Вариант 2: В директории сборки friendlywrt
+       find friendlywrt/bin -name "amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+       find friendlywrt/bin -name "kmod-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
+       find friendlywrt/bin -name "luci-app-amneziawg*.ipk" -exec cp {} ../artifact/amneziawg-packages/ \; 2>/dev/null || true
         
-        # Проверяем, найдены ли пакеты
-        if [ -z "$(ls -A ../artifact/amneziawg-packages)" ]; then
-            echo "WARNING: No AmneziaWG packages found!"
-            echo "Searching for any IPK files to debug..."
-            find . -name "*.ipk" | head -10
-        else
-            echo "AmneziaWG packages found:"
-            ls -la ../artifact/amneziawg-packages/
-        fi
+       # Проверяем, найдены ли пакеты
+       if [ -z "$(ls -A ../artifact/amneziawg-packages)" ]; then
+           echo "WARNING: No AmneziaWG packages found!"
+           echo "Searching for any IPK files to debug..."
+           find . -name "*.ipk" | head -10
+       else
+           echo "AmneziaWG packages found:"
+           ls -la ../artifact/amneziawg-packages/
+       fi
         
 
     - name: Upload AmneziaWG packages to release
