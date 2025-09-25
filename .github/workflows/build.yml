@@ -31,7 +31,7 @@ jobs:
     if: github.event.repository.owner.id == github.event.sender.id
     strategy:
       matrix:
-        VERSION: ['24.10']
+        VERSION: ['22.03']
         SET: [docker]
 
     steps:
@@ -103,19 +103,6 @@ jobs:
         TARGET_FRIENDLYWRT_CONFIG=${CONFIG}
         EOL
         DEBUG_DOT_CONFIG=1 ./build.sh friendlywrt
-
-    - name: Fix kernel version for FriendlyWrt compatibility
-      run: |
-        cd project/friendlywrt
-        echo "=== Fixing kernel version for FriendlyWrt 24.10 with kernel 6.1.118 ==="
-        sed -i 's/KERNEL_PATCHVER:=.*/KERNEL_PATCHVER:=6.1/' target/linux/rockchip/Makefile 2>/dev/null || true
-        if [ -f include/kernel-version.mk ]; then
-           echo "LINUX_VERSION-6.1 = 6.1.118" > include/kernel-version.mk
-           echo "LINUX_VERSION-6.1.118 = 6.1.118" >> include/kernel-version.mk
-        fi
-
-        echo "Kernel version configured:"
-        grep "KERNEL_PATCHVER" target/linux/rockchip/Makefile || echo "Using default"
 
     - name: Update and install feeds
       run: |
