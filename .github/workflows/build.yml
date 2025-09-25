@@ -229,7 +229,7 @@ jobs:
 
     strategy:
       matrix:
-        VERSION: ['24.10']
+        VERSION: ['22.03']
         CPU: [rk3568]
         SET: [docker]
     steps:
